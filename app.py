@@ -94,11 +94,11 @@ def get_playlists():
 
         # Extract track names
         track_names = [track['track']['name'] for track in tracks['items'] if track['track']]
-        track_dur = [track['duration_ms']for track in tracks['items'] if track['track']]
+        #track_dur = [track['duration_ms']for track in tracks['items'] if track['track']]
 
         playlist_tracks.append({
             'playlist_name': playlist_name,
-            'tracks': track_names & track_dur
+            'tracks': track_names
         })
 
     
