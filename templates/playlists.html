@@ -17,7 +17,9 @@
                         <h5>{{ playlist.playlist_name }}</h5>
                         <ul>
                             {% for track in playlist.tracks %}
-                                <li>{{ track }}</li>
+                                <li>
+                                    {{ track.name }} - {{ track.duration }}
+                                </li>
                             {% endfor %}
                         </ul>
                     </li>

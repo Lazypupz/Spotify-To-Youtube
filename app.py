@@ -6,7 +6,7 @@ import urllib.parse
 from datetime import datetime
 
 load_dotenv()
-#recieves keys fron .env file
+
 client_id = os.getenv('SPOTIFYCLIENT_ID')
 client_secret = os.getenv('SPOTIFYCLIENT_SECRET')
 
@@ -15,7 +15,6 @@ app.secret_key = os.getenv("flask_key")
 
 
 REDIRECT_URI = 'http://localhost:5000/callback'
-
 AUTH_URL = "https://accounts.spotify.com/authorize"
 TOKEN_URL = "https://accounts.spotify.com/api/token"
 API_BASE_URL = "https://api.spotify.com/v1/"
@@ -77,7 +76,7 @@ def get_playlists():
         "Authorization": f"Bearer {session['access_token']}"
     }
 
-    # Fetch the user's playlists
+    # Grab the users playlists
     response = requests.get(API_BASE_URL + 'me/playlists', headers=headers)
     playlists = response.json()
     
@@ -88,28 +87,37 @@ def get_playlists():
         playlist_id = playlist['id']
         playlist_name = playlist['name']
         
-        # Fetch tracks for the playlist
+        # grab tracks for the playlist
         tracks_response = requests.get(API_BASE_URL + f'playlists/{playlist_id}/tracks', headers=headers)
         tracks = tracks_response.json()
 
-        # Extract track names
-        track_names = [track['track']['name'] for track in tracks['items'] if track['track']]
-        #track_dur = [track['duration_ms']for track in tracks['items'] if track['track']]
+        # grab track names and leg
+        tracks_info = [
+            {
+                'name': track['track']['name'],
+                'duration': f"{track['track']['duration_ms'] // 60000}:{(track['track']['duration_ms'] % 60000) // 1000:02}"
+            }
+            for track in tracks['items'] if track['track'] and 'duration_ms' in track['track']
+        ]
+        def findYoutubeLink():
+            pass
+
 
         playlist_tracks.append({
             'playlist_name': playlist_name,
-            'tracks': track_names
+            'tracks': tracks_info
         })
 
     
     return render_template('playlists.html', playlists=playlist_tracks)
 
-#refresh token every hour
+
+
 @app.route('/refresh-token')
 def refresh_token():
     if 'refresh_token' not in session:
         return redirect('/login')
-    
+
     if datetime.now().timestamp() > session['expires_at']:
         req_body = {
             'grant_type': 'refresh_token',
@@ -126,6 +134,8 @@ def refresh_token():
         
 
         return redirect('/playlists')
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
