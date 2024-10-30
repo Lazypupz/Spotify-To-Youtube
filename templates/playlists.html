@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Playlists</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>My Playlists</h1>
+        {% if playlists %}
+            <ul class="list-group">
+                {% for playlist in playlists %}
+                    <li class="list-group-item">
+                        <h5>{{ playlist.playlist_name }}</h5>
+                        <ul>
+                            {% for track in playlist.tracks %}
+                                <li>{{ track }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No playlists found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
