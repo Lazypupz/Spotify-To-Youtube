@@ -26,7 +26,7 @@ header {
     margin: 0; /* Remove default margin */
     font-size: 70px;
     color: #e43d12;
-    
+    text-transform: capitalize;
 
 }
 
@@ -62,9 +62,10 @@ header {
 }   
 
 .loginTo button a:hover {
-    color: #07742d; /* Change link color on hover */
+    color: #9c6e02; /* Change link color on hover */
 }
 
 #test h3 { 
     text-align: center;
+    color: #0fc0c0;
 }

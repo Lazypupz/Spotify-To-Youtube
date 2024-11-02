@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Playlists</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="pl.css">
+    <title>Spotify To Youtube Webapp</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pl.css') }}">
 </head>
 <body>
     <div class="container mt-5">
-        <h1>My Playlists</h1>
+        <div id ="ph1div"><h1 id ="pH1">My Playlists</h1></div>
         {% if playlists %}
             <ul class="list-group">
                 {% for playlist in playlists %}
                     <li class="list-group-item">
-                        <h5>{{ playlist.playlist_name }}</h5>
+                        <h3 id="playlistNAME">{{ playlist.playlist_name }}</h5>
                         <ul>
                             {% for track in playlist.tracks %}
                                 <li>
@@ -28,6 +28,8 @@
         {% else %}
             <p>No playlists found.</p>
         {% endif %}
+
+
     </div>
 </body>
 </html>
