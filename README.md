@@ -1,3 +1,10 @@
-Spotify-To-Youtube
-This is a simple website which accesses a user's spotify playlist and makes a youtube playlist containing the songs
-in the spot playlist.
+# Create and Use a Virtual Environment (venv)
+
+To create a virtual environment (`venv`) for your project, follow these steps:
+
+## 1. Navigate to Your Project Folder
+
+Open your terminal (or Command Prompt on Windows) and navigate to your project's directory:
+
+```bash
+cd path/to/your/project
