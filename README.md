@@ -20,16 +20,16 @@ Before running this application, ensure you have the following:
 - **YouTube Data API v3** enabled on a Google Cloud project.
 
 ##Setup
-###1. Clone the Repository
+##1. Clone the Repository
 ```bash
 cd C:\Users\{your_name}\Spotify-To-Youtube
 ```
-###2. Install required dependencies
+##2. Install required dependencies
 Install the required packages listed in *requirements.txt*:
 ```bash
 pip install -r requirements.txt
 ```
-###3. Spotify API Setup
+##3. Spotify API Setup
 - **Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)**
 - **Create a new application and get your Client ID and Client Secret**
 - ** Add these details to a .env file in the root directory of the project**
@@ -37,7 +37,7 @@ pip install -r requirements.txt
 SPOTIFYCLIENT_ID = "your_spotify_client_id"
 SPOTIFYCLIENT_SECRET = "your_spotify_client_secret"
 ```
-###4. Youtube API Setup
+##4. Youtube API Setup
 - **Go to the [Google Cloud Console](https://console.cloud.google.com/)**
 - **Create a project**
 - **Enable the ***Youtube Data API v3 *** for your project**
@@ -45,14 +45,14 @@ SPOTIFYCLIENT_SECRET = "your_spotify_client_secret"
 - Save this JSON file in the root dir as *credentials.json*
 
 ##Usage
-###**Converting a Playlist**
+##**Converting a Playlist**
 - Run the following command to start the application
   ```bash
   python main.py
   ```
 - You will be told to Enter the spotify playlist URL and then authorize access to both spotify and youtube accounts.
 - One authorized the app will search for each song from the Spotify playlist on Youtube and create a new youtube playlist with matching songs
-###**Command Line Input**
+##**Command Line Input**
 - Follow the instructions on the console
 - Chose what playlist to convert
 
