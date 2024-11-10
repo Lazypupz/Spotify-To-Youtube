@@ -7,7 +7,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pickle
-import time 
+import time
 from googleapiclient.errors import HttpError
 
 
@@ -17,7 +17,7 @@ class Spotify:
     def __init__(self):
         self.client_id = os.getenv('SPOTIFYCLIENT_ID')
         self.client_secret = os.getenv('SPOTIFYCLIENT_SECRET')
-        self.REDIRECT_URI = 'http://localhost:5000/callback'  
+        self.REDIRECT_URI = 'http://localhost:5000/callback'
         self.AUTH_URL = "https://accounts.spotify.com/authorize"
         self.TOKEN_URL = "https://accounts.spotify.com/api/token"
         self.API_BASE_URL = "https://api.spotify.com/v1/"
@@ -49,37 +49,32 @@ class Spotify:
         }
         response = requests.post(self.TOKEN_URL, data=req_body)
         token_info = response.json()
-        self.access_token = token_info['access_token']
-        self.refresh_token = token_info['refresh_token']
-        self.expires_at = datetime.now().timestamp() + token_info['expires_in']
-        print("Access token obtained successfully.")
-    
+        self.access_token = token_info.get('access_token')
+        self.refresh_token = token_info.get('refresh_token')
+        self.expires_at = datetime.now().timestamp() + token_info.get('expires_in', 0)
+        if not self.access_token:
+            print("Failed to retrieve access token.")
+            return
+
     def get_User_Name(self):
-        if self.access_token is None:
+        if not self.access_token:
             print("Log-in first")
             return None
-        headers = {
-            "Authorization": f"Bearer {self.access_token}"
-        }
+        headers = {"Authorization": f"Bearer {self.access_token}"}
         response = requests.get(self.API_BASE_URL + "me", headers=headers)
-        user_name = response.json()
-
-        return user_name.get('display_name', 'Unknown Name')
+        user_data = response.json()
+        return user_data.get('display_name', 'Unknown Name')
 
     def get_playlists(self):
-        if self.access_token is None:
+        if not self.access_token:
             print("You need to log in first.")
             return []
-
-        if datetime.now().timestamp() > self.expires_at:
-            print("Access token expired. Please log in again.")
-            return []
-
-        headers = {
-            "Authorization": f"Bearer {self.access_token}"
-        }
+        headers = {"Authorization": f"Bearer {self.access_token}"}
         response = requests.get(self.API_BASE_URL + 'me/playlists', headers=headers)
         playlists = response.json()
+        if 'items' not in playlists:
+            print("Error fetching playlists")
+            return []
 
         playlist_tracks = []
         for playlist in playlists['items']:
@@ -87,25 +82,20 @@ class Spotify:
             playlist_name = playlist['name']
             tracks_response = requests.get(self.API_BASE_URL + f'playlists/{playlist_id}/tracks', headers=headers)
             tracks = tracks_response.json()
-
             tracks_info = [
                 {
                     'name': track['track']['name'],
-                    'artist': ', '.join(artist['name'] for artist in track['track']['artists']),  # Get the artist names
+                    'artist': ', '.join(artist['name'] for artist in track['track']['artists']),
                     'duration': f"{track['track']['duration_ms'] // 60000}:{(track['track']['duration_ms'] % 60000) // 1000:02}"
                 }
-                for track in tracks['items'] if track['track'] and 'duration_ms' in track['track']
+                for track in tracks.get('items', []) if track['track'] and 'duration_ms' in track['track']
             ]
+            playlist_tracks.append({'playlist_name': playlist_name, 'tracks': tracks_info})
 
-            playlist_tracks.append({
-                'playlist_name': playlist_name,
-                'tracks': tracks_info
-            })
-
-        return playlist_tracks  # Ensure this returns a list
+        return playlist_tracks
 
 class YoutubeAPI:
-    SCOPES = ['https://www.googleapis.com/auth/youtube']
+    SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 
     def __init__(self):
         self.creds = None
@@ -113,6 +103,7 @@ class YoutubeAPI:
         self.token_file = 'token.pickle'
         self.credentials_file = 'credentials.json'
         self.video_cache = {}
+        self.playlist_cache = {}  # Initialize playlist_cache here
 
     def authenticate(self):
         if os.path.exists(self.token_file):
@@ -131,7 +122,45 @@ class YoutubeAPI:
 
         self.service = build('youtube', 'v3', credentials=self.creds)
 
+    def get_existing_playlists(self):
+        """Retrieve and cache the user's YouTube playlists."""
+        request = self.service.playlists().list(
+            part='snippet',
+            mine=True,
+            maxResults=50
+        )
+        response = request.execute()
+        self.playlist_cache = {item['snippet']['title']: item['id'] for item in response['items']}
+        return self.playlist_cache
+
+    def check_playlist_exists(self, playlist_name):
+        """Check if a YouTube playlist with the given name already exists."""
+        if not self.playlist_cache:
+            self.get_existing_playlists()
+        return playlist_name in self.playlist_cache       
+
+    def del_playlist(self, playlist_id, playlist_name):
+        if not self.playlist_cache:
+            self.get_existing_playlists()
+        if playlist_id not in self.playlist_cache.values():
+            print("Playlist ID not found in cache")
+            return None
+        try:
+            request = self.service.playlists().delete(
+                id=playlist_id
+            )
+            response = request.execute()
+            print(f"Playlist '{playlist_name}' was deleted")        
+        except Exception as e:
+            print("Error occurred:", e)
+
+
+        
+
+
+
     def create_playlist(self, playlist_name):
+
         request = self.service.playlists().insert(
             part='snippet,status',
             body={
@@ -199,7 +228,6 @@ class YoutubeAPI:
                     break  # Exit on other errors
 
         print("Failed to add video after multiple attempts.")
-        import time
 
         for attempt in range(5):
             try:
@@ -212,54 +240,91 @@ class YoutubeAPI:
                 else:
                     print(f"An error occurred: {e}")
                     break
+   
+        
+
 
 def main():
-
     print("Welcome To Spotify-to-Youtube app from Lazypupz")
-    print("Please make sure you have the necessary API keys and authentication set up.")
-    
-    spotify = Spotify()
-    spotify.login()  # Log in to get the access token
-    playlists = spotify.get_playlists()  # Grab playlistss
+    print("Please make sure you have your own personal API keys and authentication set up in the README on Github (*required*).")
 
-    # Check if playlists were fetched successfully
+    spotify = Spotify()
+    spotify.login()
+    playlists = spotify.get_playlists()
+
     if not playlists:
         print("No playlists were found or an error occurred.")
         return
+
     user_name = spotify.get_User_Name()
-    # Display user's playlists
     print(f"Available Spotify Playlists for {user_name}:")
     for i, playlist in enumerate(playlists):
         print(f"{i + 1}: {playlist['playlist_name']}")
 
-    # User Input for playlist choice
-    choice = int(input("Select a playlist to convert to YouTube: ")) - 1
-    if choice < 0 or choice >= len(playlists):
-        print("Invalid choice. Exiting.")
-        return
+    while True:
+        option = input("(1) Add a playlist, (2) Delete a playlist, (3) Exit: ")
+        if option not in ["1", "2", "3"]:
+            print("Can't do that m8 - Please enter 1, 2, or 3.")
+            continue
 
-    selected_playlist = playlists[choice]
-    playlist_name = selected_playlist['playlist_name']
-    print(f"Creating YouTube playlist: {playlist_name}")
+        if option == "1":
+            youtube_api = YoutubeAPI()
+            youtube_api.authenticate()
+            choice = select_playlist(playlists)
 
-    youtube_api = YoutubeAPI()
-    youtube_api.authenticate()  
+            if choice is None:
+                print("Invalid choice.")
+                return
 
-    playlist_id = youtube_api.create_playlist(playlist_name)
+            selected_playlist = playlists[choice]
+            playlist_name = selected_playlist['playlist_name']
+            print(f"Converting Spotify playlist '{playlist_name}' to YouTube...")
 
-    # Add each track to the Youtube playlist
-    for track in selected_playlist['tracks']:
-        song_name = track['name']
-        artist_name = track['artist']  # Get the artists name
-        print(f"Searching for video for: {song_name} by {artist_name}")
-        video_id = youtube_api.search_video(song_name, artist_name)  # Pass both song and artist
-        if video_id:
-            print(f"Adding {song_name} to playlist.")
-            youtube_api.add_video_to_playlist(playlist_id, video_id)
-            time.sleep(1)   
+            playlist_id = youtube_api.create_playlist(playlist_name)
+            for track in selected_playlist['tracks']:
+                video_id = youtube_api.search_video(track['name'], track['artist'])
+                if video_id:
+                    youtube_api.add_video_to_playlist(playlist_id, video_id)
+                    time.sleep(1)
+                else:
+                    print(f"No video found for {track['name']} by {track['artist']}.")
+
+        elif option == "2":
+            youtube_api = YoutubeAPI()
+            youtube_api.authenticate()
+            choice = select_playlist(playlists)
+
+            if choice is None:
+                print("Invalid choice.")
+                return
+
+            selected_playlist = playlists[choice]
+            playlist_name = selected_playlist['playlist_name']
+            print(f"Checking if YouTube playlist '{playlist_name}' exists...")
+
+            if youtube_api.check_playlist_exists(playlist_name):
+                playlist_id = youtube_api.playlist_cache[playlist_name]
+                youtube_api.del_playlist(playlist_id, playlist_name)
+            else:
+                print(f"No YouTube playlist found with the name '{playlist_name}'.")
+
+        elif option == "3":
+            print("Exiting the application.")
+            break
+
+
+
+def select_playlist(playlists):
+    try:
+        choice = int(input("Select a playlist by number: ")) - 1
+        if 0 <= choice < len(playlists):
+            return choice
         else:
-            print(f"No video found for {song_name}  {artist_name}.")
-
+            print("Invalid choice. Please select a valid playlist number.")
+            return None
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        return None
 if __name__ == '__main__':
     main()
 
