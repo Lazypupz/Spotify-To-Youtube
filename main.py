@@ -35,7 +35,7 @@ class Spotify:
             'show_dialog': True
         }
         auth_url = f"{self.AUTH_URL}?{urllib.parse.urlencode(params)}"
-        print(f"Please go to this URL and authorize the application: {auth_url}")
+        print(f"Please go to this URL and authorize the app: {auth_url}\n")
         code = input("Enter the code from the URL: ")
         self.get_token(code)
 
@@ -53,7 +53,7 @@ class Spotify:
         self.refresh_token = token_info.get('refresh_token')
         self.expires_at = datetime.now().timestamp() + token_info.get('expires_in', 0)
         if not self.access_token:
-            print("Failed to retrieve access token.")
+            print("Failed to gain access token.")
             return
 
     def get_User_Name(self):
@@ -73,7 +73,7 @@ class Spotify:
         response = requests.get(self.API_BASE_URL + 'me/playlists', headers=headers)
         playlists = response.json()
         if 'items' not in playlists:
-            print("Error fetching playlists")
+            print("Error grabbing playlists")
             return []
 
         playlist_tracks = []
@@ -103,7 +103,7 @@ class YoutubeAPI:
         self.token_file = 'token.pickle'
         self.credentials_file = 'credentials.json'
         self.video_cache = {}
-        self.playlist_cache = {}  # Initialize playlist_cache here
+        self.playlist_cache = {}
 
     def authenticate(self):
         if os.path.exists(self.token_file):
@@ -123,7 +123,7 @@ class YoutubeAPI:
         self.service = build('youtube', 'v3', credentials=self.creds)
 
     def get_existing_playlists(self):
-        """Retrieve and cache the user's YouTube playlists."""
+        #Retrieve and cache the user YouTube playlists.
         request = self.service.playlists().list(
             part='snippet',
             mine=True,
@@ -134,10 +134,18 @@ class YoutubeAPI:
         return self.playlist_cache
 
     def check_playlist_exists(self, playlist_name):
-        """Check if a YouTube playlist with the given name already exists."""
+        #Check if a Youtube playlist with the name exists.
         if not self.playlist_cache:
             self.get_existing_playlists()
         return playlist_name in self.playlist_cache       
+
+    def print_pcache(self):
+        if not self.playlist_cache:
+            self.get_existing_playlists()
+        print("The current playlists are: \n")
+        for playlist_name in self.playlist_cache.keys():
+            print(playlist_name)
+            return None
 
     def del_playlist(self, playlist_id, playlist_name):
         if not self.playlist_cache:
@@ -155,7 +163,6 @@ class YoutubeAPI:
             print("Error occurred:", e)
 
 
-        
 
 
 
@@ -176,7 +183,7 @@ class YoutubeAPI:
             }
         )
         response = request.execute()
-        return response['id']  # Return the ID of the newly created playlist
+        return response['id']  # Return the ID of the newly made playlist
 
     def search_video(self, song_name, artist_name):
 
@@ -252,24 +259,18 @@ def main():
     spotify.login()
     playlists = spotify.get_playlists()
 
-    if not playlists:
-        print("No playlists were found or an error occurred.")
-        return
 
-    user_name = spotify.get_User_Name()
-    print(f"Available Spotify Playlists for {user_name}:")
-    for i, playlist in enumerate(playlists):
-        print(f"{i + 1}: {playlist['playlist_name']}")
+    youtube_api = YoutubeAPI()
+    youtube_api.authenticate()
 
     while True:
-        option = input("(1) Add a playlist, (2) Delete a playlist, (3) Exit: ")
-        if option not in ["1", "2", "3"]:
-            print("Can't do that m8 - Please enter 1, 2, or 3.")
+        option = input("(1) Add a playlist, (2) Delete a playlist, (3) Display Spotify Playlists, (4) Display Youtube Playlist, (5) Exit: ")
+        if option not in ["1", "2", "3", "4", "5"]:
+            print("Can't do that m8 - Please enter 1, 2, 3, 4, 5")
             continue
 
         if option == "1":
-            youtube_api = YoutubeAPI()
-            youtube_api.authenticate()
+
             choice = select_playlist(playlists)
 
             if choice is None:
@@ -307,9 +308,17 @@ def main():
                 youtube_api.del_playlist(playlist_id, playlist_name)
             else:
                 print(f"No YouTube playlist found with the name '{playlist_name}'.")
-
+            
         elif option == "3":
-            print("Exiting the application.")
+            user_name = spotify.get_User_Name()
+            print(f"Available Spotify Playlists for {user_name}:")
+            for i, playlist in enumerate(playlists):
+                print(f"{i + 1}: {playlist['playlist_name']}")
+        
+        elif option == "4":
+            youtube_api.print_pcache()
+        elif option == "5":
+            print("Exiting now.......")
             break
 
 
