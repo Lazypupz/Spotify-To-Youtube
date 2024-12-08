@@ -9,10 +9,13 @@ from google.auth.transport.requests import Request
 import pickle
 import time
 from googleapiclient.errors import HttpError
+import sp
 
 
 class YoutubeAPI:
     SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
+
+
 
     def __init__(self):
         self.creds = None
@@ -60,7 +63,7 @@ class YoutubeAPI:
         if not self.playlist_cache:
             self.get_existing_playlists()
         print("The current playlists are: \n")
-        for playlist_name in self.playlist_cache.values():
+        for playlist_name in self.playlist_cache.keys():
             print(playlist_name)
             return None
 
@@ -140,7 +143,7 @@ class YoutubeAPI:
                     body=request_body
                 )
                 response = request.execute()
-                print(f"Video {video_id} added to playlist {playlist_id}.")
+                print(f"Video {sp.Spotify.get_playlists().playlist_tracks} added to playlist {playlist_id}.")
                 return response  # Return if successful
 
             except HttpError as e:
@@ -164,16 +167,4 @@ class YoutubeAPI:
                 else:
                     print(f"An error occurred: {e}")
                     break
-   
-def select_playlist(playlists):
-    try:
-        choice = int(input("Select a playlist by number: ")) - 1
-        if 0 <= choice < len(playlists):
-            return choice
-        else:
-            print("Invalid choice. Please select a valid playlist number.")
-            return None
-    except ValueError:
-        print("Invalid input. Please enter a number.")
-        return None        
 
