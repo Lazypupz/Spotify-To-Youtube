@@ -33,9 +33,14 @@ class Spotify:
             'redirect_uri': self.REDIRECT_URI,
             'show_dialog': True
         }
-        auth_url = f"{self.AUTH_URL}?{urllib.parse.urlencode(params)}"
-        print(f"Please go to this URL and authorize the app:\n {auth_url}\n")
-        code = input("Enter the code from the URL: ")
+        ## parsing query
+        parsedQuery = urllib.parse.urlencode(params)
+        auth_url = f"{self.AUTH_URL}?{parsedQuery}"
+
+        print(f"Please go to this URL and authorize the app (you have 20 seconds):\n {auth_url}\n")
+        print("Authenticating Log-in")
+
+        code = ("Enter Code from URL (everything after ?=): ")
         self.get_token(code)
 
     def get_token(self, code):
