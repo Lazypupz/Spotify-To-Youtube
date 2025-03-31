@@ -1,26 +1,52 @@
-# Spotify to YouTube Playlist Converter
+# Spotify-To-YouTube Playlist Converter
 
-This Python tool allows you to convert a Spotify playlist into a YouTube playlist. The program will fetch track information from a Spotify playlist and add the corresponding songs to a YouTube playlist.
+My first ever proper project in programming (that wasnt game dev) created during autum 2024
+Can convert Spotify Playlists to Youtube playlists and more
 
 ## Features
-- Fetch a playlist from Spotify by providing the playlist URL or ID.
-- Search for each song on YouTube using the track's details from Spotify.
-- Create a new playlist on YouTube and add the found tracks.
-  
-## Requirements
+- Convert any public Spotify playlist to a YouTube playlist
+- Automatically fetches track details and matches them on YouTube
+- Can also display and delete playlists
+
+## Prerequisites
+Before you begin, ensure you have the following installed:
 - Python 3.x
-- Spotify API credentials (Client ID, Client Secret).
-- Google Cloud API credentials (OAuth 2.0 client ID).
+- [Spotify API credentials](https://developer.spotify.com/dashboard/)
+- [YouTube Data API credentials](https://console.cloud.google.com/apis/)
 
-## Setup
-
-### 1. Install Dependencies
-
-To install the required Python libraries, you need to install dependencies from the `requirements.txt` file. Run the following command in your terminal:
-
-```bash
+## Installation
+Clone the repository and install the required dependencies:
+```sh
+git clone https://github.com/Lazypupz/Spotify-To-Youtube.git
+cd Spotify-To-Youtube
 pip install -r requirements.txt
 ```
-## NOTE the project isnt finished and neither is the README 
 
-## TODO DISPLAY ALL YOUTUBE PLAYLISTS ISNTEAD OF ONES IN THE PLAYLIST CACHE. AND FINISH READNE.md
+## Setup
+1. Obtain your Spotify and YouTube API credentials.
+2. Place your `credentials.json` file in the root directory.
+3. Place your Spotify keys into a `.env` file in the root dir
+```sh
+SPOTIFYCLIENT_ID=your_spotify_client_key
+SPOTIFYCLIENT_SECRET=your_spotify_secret_key
+```
+
+## Usage
+Run the script with:
+```sh
+python main.py
+```
+
+## Notes
+- It takes the same amount of effor for private and public playlists
+- The youtube api quota is limited so I tried to optimise it the best i could as a new programmer 
+
+## Contributing
+Pull requests and contributions are welcome! Feel free to submit issues or feature requests.
+
+## License
+This project is licensed under the MIT License.
+
+## Author
+[Lazypupz](https://github.com/Lazypupz)
+
